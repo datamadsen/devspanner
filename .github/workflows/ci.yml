@@ -42,6 +42,9 @@ jobs:
           go-version-file: go.mod
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           version: latest
+          # Build the linter with the toolchain from go.mod so its build-Go matches
+          # the module's `go` directive (a prebuilt binary may be built with older Go).
+          install-mode: goinstall
