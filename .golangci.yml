@@ -1,0 +1,14 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck # unchecked errors
+    - govet # suspicious constructs
+    - ineffassign # ineffectual assignments
+    - staticcheck # broad static analysis
+    - unused # unused code
+    - misspell # common misspellings in comments/strings
+
+formatters:
+  enable:
+    - gofmt

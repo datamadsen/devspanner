@@ -1,0 +1,9 @@
+# built binary
+/devspanner
+
+# GoReleaser output + coverage artifacts
+/dist/
+/coverage.out
+
+# captured service/task logs live in each consuming repo's .devspanner/
+.devspanner/logs/

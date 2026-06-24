@@ -1,0 +1,66 @@
+# devspanner config — copy to <repo-root>/.devspanner/config.yaml and edit.
+#
+# Top-level `groups` are display groupings; each holds long-running `services`
+# (shown on the dashboard) and one-shot `tasks` (build/deploy, behind the `c` palette).
+#
+# Behaviour is derived from the fields you set — there is no "type":
+#   • container:  docker-style. Liveness = that container running; start/stop run as
+#                 commands; logs come from the `logs:` command.
+#   • port:       process-style. devspanner owns the child it spawns, captures its
+#                 output to .devspanner/logs/<group>-<name>.log, and frees the port
+#                 before a (re)start. `logs:` is optional — the captured file is tailed.
+#
+# Optional per-service keys:
+#   dir     working directory (relative to the repo root); defaults to the root
+#   stop    command to stop it; if omitted we kill the child we started + free the port
+#   health  HTTP URL that returns <500 when healthy (shows "starting…" until it does)
+#   open    URL for [o]pen-in-browser; the [o] hint only shows when this is set
+#   logs    command that prints logs; if omitted, the captured log file is tailed
+#   watch   directory to flag the running build "stale" when source files are newer
+
+name: my-project
+
+groups:
+  - name: shared
+    services:
+      - name: platform
+        start: docker compose up -d
+        stop:  docker compose down
+        container: my-postgres
+        logs:  docker compose logs --tail 500
+        open:  http://localhost:3000
+    tasks:
+      - name: reset database
+        run:  ./scripts/reset-db.sh
+        confirm: true
+
+  - name: api
+    services:
+      - name: backend
+        dir:    services/api
+        start:  npm run dev
+        port:   8080
+        health: http://localhost:8080/health
+        open:   http://localhost:8080/docs
+        watch:  services/api/src
+    tasks:
+      - name: build + test
+        run:  npm --prefix services/api run build && npm --prefix services/api test
+      - name: deploy to staging
+        run:  ./scripts/deploy.sh staging
+        confirm: true
+
+  - name: web
+    services:
+      - name: frontend
+        dir:   apps/web
+        start: npm run dev
+        port:  5173
+        open:  http://localhost:5173/
+
+# Global shortcuts: each opens a URL or runs a command. Avoid the reserved keys
+# (r s l o a x c q, arrows, enter, esc) — those drive devspanner itself.
+shortcuts:
+  - key:   g
+    label: dashboard
+    open:  http://localhost:3000

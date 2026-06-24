@@ -1,0 +1,103 @@
+# GoReleaser config — https://goreleaser.com
+#
+# A `git tag vX.Y.Z && git push --tags` triggers .github/workflows/release.yml,
+# which runs `goreleaser release`. With nothing else configured that already:
+#   • cross-compiles binaries for linux/macOS/windows × amd64/arm64
+#   • builds .deb and .rpm packages
+#   • creates the GitHub Release with archives + checksums + changelog
+#
+# The Homebrew, Scoop and AUR-bin publishers are written below but commented out:
+# each needs an external repo and/or a secret (see RELEASING.md). Uncomment a block
+# once its prerequisites exist — until then a release just skips it.
+version: 2
+
+project_name: devspanner
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  # Linux-first: the tool relies on Unix process groups and /proc, so Windows is
+  # not a build target (it does not compile). macOS builds and degrades gracefully.
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    # GoReleaser sets .Version from the tag; -s -w strips the binary.
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE
+      - examples/config.yaml
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+# .deb / .rpm packages attached to the GitHub Release (no external repo needed).
+nfpms:
+  - maintainer: Tim M. Madsen <tim@datamadsen.dk>
+    description: A small, config-driven terminal UI for the local dev loop.
+    homepage: https://github.com/datamadsen/devspanner
+    license: MIT
+    formats:
+      - deb
+      - rpm
+
+release:
+  github:
+    owner: datamadsen
+    name: devspanner
+  draft: false
+
+# --- Optional publishers: uncomment after the prerequisites in RELEASING.md ---
+#
+# Homebrew formula → needs a `datamadsen/homebrew-tap` repo and a HOMEBREW_TAP_TOKEN
+# secret (a PAT with `repo` scope on that tap). Then: brew install datamadsen/tap/devspanner
+# brews:
+#   - repository:
+#       owner: datamadsen
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+#     homepage: https://github.com/datamadsen/devspanner
+#     description: A small, config-driven terminal UI for the local dev loop.
+#     license: MIT
+#
+# (Scoop/Windows is intentionally omitted — devspanner does not build on Windows.)
+#
+# AUR binary package (devspanner-bin) → needs an AUR account whose SSH private key
+# is stored in an AUR_KEY secret. GoReleaser creates/pushes the repo automatically;
+# users then `yay -S devspanner-bin`.
+# aurs:
+#   - name: devspanner-bin
+#     homepage: https://github.com/datamadsen/devspanner
+#     description: A small, config-driven terminal UI for the local dev loop.
+#     maintainers:
+#       - Tim M. Madsen <tim@datamadsen.dk>
+#     license: MIT
+#     private_key: "{{ .Env.AUR_KEY }}"
+#     git_url: ssh://aur@aur.archlinux.org/devspanner-bin.git
+#     package: |-
+#       install -Dm755 "./devspanner" "${pkgdir}/usr/bin/devspanner"
+#       install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/devspanner/LICENSE"
+#       install -Dm644 "./README.md" "${pkgdir}/usr/share/doc/devspanner/README.md"
