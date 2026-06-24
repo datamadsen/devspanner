@@ -7,3 +7,6 @@
 
 # captured service/task logs live in each consuming repo's .devspanner/
 .devspanner/logs/
+
+# demo build output
+/examples/demo/bin/

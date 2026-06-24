@@ -1,0 +1,42 @@
+# devspanner demo configuration.
+#
+# This drives the throwaway sample project under examples/demo/, so you can see
+# devspanner work the moment you clone the repo — just run `devspanner` from
+# anywhere inside it. The services are tiny, dependency-free Go programs and the
+# tasks are harmless shell scripts.
+#
+# For the fully-annotated reference of every field, see examples/config.yaml.
+
+name: devspanner-demo
+
+groups:
+  - name: api
+    services:
+      - name: backend
+        dir: examples/demo/api
+        start: go run .
+        port: 8080
+        health: http://localhost:8080/health
+        open: http://localhost:8080/
+        watch: examples/demo/api # flag "stale" when source is newer than the process
+    tasks:
+      - name: build
+        dir: examples/demo
+        run: bash scripts/build.sh
+      - name: deploy (demo)
+        dir: examples/demo
+        run: bash scripts/deploy.sh
+        confirm: true # show a y/n prompt before running
+
+  - name: web
+    services:
+      - name: frontend
+        dir: examples/demo/web
+        start: go run .
+        port: 5173
+        open: http://localhost:5173/
+
+shortcuts:
+  - key: g
+    label: api health
+    open: http://localhost:8080/health

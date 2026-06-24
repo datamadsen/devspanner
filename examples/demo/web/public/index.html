@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>devspanner demo</title>
+    <style>
+      body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        max-width: 38rem;
+        margin: 4rem auto;
+        padding: 0 1rem;
+        line-height: 1.6;
+        color: #1c2433;
+      }
+      code {
+        background: #eef1f6;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+      }
+      a {
+        color: #1f8a70;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>devspanner demo · web</h1>
+    <p>
+      This static page is served by the demo <code>web</code> service. The demo
+      <code>api</code> service runs alongside it — check
+      <a href="http://localhost:8080/health">localhost:8080/health</a>.
+    </p>
+    <p>
+      Both are managed by devspanner from the <code>.devspanner/config.yaml</code> at
+      the repo root. Try <code>r</code> to restart, <code>l</code> to view logs, and
+      <code>c</code> for the build/deploy tasks.
+    </p>
+  </body>
+</html>
